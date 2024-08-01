@@ -17,6 +17,10 @@ mod chess {
         color: Color,
         rank: Rank,
     }
+
+    struct Board {
+        matrix: [[Option<Piece>; 8]; 8],
+    }
 }
 
 fn main() {
