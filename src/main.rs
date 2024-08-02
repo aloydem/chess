@@ -23,13 +23,18 @@ mod chess {
         rank: Rank,
     }
 
-    struct Board {
-        matrix: [[Option<Piece>; 8]; 8],
-        entry: Option<(usize, usize)>,
-        target: Option<Piece>,
+    type Matrix = [[Option<Piece>; 8]; 8];
+
+    trait ChessBoard {
+        fn map_index(column: char, row: u8) -> (usize, usize);
+        fn index(&self, column: usize, row: usize) -> &Option<Piece>;
+        fn index_mut(&mut self, column: usize, row: usize) -> &mut Option<Piece>;
+        fn remove(&mut self, column: usize, row: usize) -> Option<Piece>;
+        fn verify(&self, position: (char, u8), piece: Option<Piece>) -> bool;
+        fn change_position(&mut self, start: (char, u8), end: (char, u8));
     }
 
-    impl Board {
+    impl ChessBoard for Matrix {
         fn map_index(column: char, row: u8) -> (usize, usize) {
             match (column, row) {
                 (column @ ('A'..='H'), row @ (1..=8)) => {
@@ -39,12 +44,12 @@ mod chess {
             }
         }
 
-        fn index_mut(&mut self, column: usize, row: usize) -> &mut Option<Piece> {
-            &mut self.matrix[row][column]
+        fn index(&self, column: usize, row: usize) -> &Option<Piece> {
+            &self[row][column]
         }
 
-        fn index(&self, column: usize, row: usize) -> &Option<Piece> {
-            &self.matrix[row][column]
+        fn index_mut(&mut self, column: usize, row: usize) -> &mut Option<Piece> {
+            &mut self[row][column]
         }
 
         fn remove(&mut self, column: usize, row: usize) -> Option<Piece> {
@@ -57,19 +62,19 @@ mod chess {
         }
 
         fn verify(&self, position: (char, u8), piece: Option<Piece>) -> bool {
-            let (column, row) = Board::map_index(position.0, position.1);
+            let (column, row) = Matrix::map_index(position.0, position.1);
             self.index(column, row) == &piece
         }
 
-        fn change_position(&mut self, start: (char, u8), end: (char, u8)) -> Result<(), &str> {
+        fn change_position(&mut self, start: (char, u8), end: (char, u8)) {
             let (start_column, start_row) = Self::map_index(start.0, start.1);
             let (end_column, end_row) = Self::map_index(end.0, end.1);
 
             if let Some(piece) = self.remove(start_column, start_row) {
                 *self.index_mut(end_column, end_row) = Some(piece);
-                return Ok(());
+                return;
             }
-            Err("Starting square is empty")
+            panic!("Starting square is empty")
         }
     }
 }
